@@ -1,10 +1,10 @@
 #! encoding:utf-8
 from django.core.management import BaseCommand
 from argparse import ArgumentParser
-from conn_utils import write_dataframe_to_sql, backup_table_to_table, clean_table
+from conn_utils import *
 import tushare
 from pandas import DataFrame
-from core.models import HorseBasic, HorseBasicBackup, TableName
+from core.models import *
 
 
 class Command(BaseCommand):
@@ -22,9 +22,25 @@ class Command(BaseCommand):
         parser.add_argument('--get_stock_basics', action='store_true', default=False,
                             dest='get_stock_basics', help='download get_stock_basics and save')
 
+        parser.add_argument('--get_index', action='store_true', default=False,
+                            dest='get_index', help='update get_index and save')
+
     def handle(self, *args, **options):
         if options['get_stock_basics']:
             self.handle_get_stock_basices()
+
+        if options['get_index']:
+            self.handle_get_index()
+
+    def handle_get_index(self):
+        """
+        更新大盘指数，目前不存
+        """
+        print self.handle_get_index.__doc__
+        df = tushare.get_index()
+        """:type : DataFrame"""
+        clean_table(IndexInTimeList)
+        write_dataframe_to_sql(df, TableName.index_in_time, index=False)
 
     def handle_get_stock_basices(self):
         """处理股票列表"""

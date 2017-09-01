@@ -5,8 +5,12 @@ from django.db import models
 # Create your models here.
 
 class TableName(object):
+    # 基本信息
     horse_basic = 'horse_basic'
     horse_basic_backup = 'horse_basic_backup'
+
+    # 大盘
+    index_in_time = 'index_in_time'
 
 
 class HorseBasicBase(models.Model):
@@ -39,6 +43,9 @@ class HorseBasicBase(models.Model):
     npr = models.DecimalField(max_digits=10, decimal_places=4, verbose_name=u'净利润率（%）')
     holders = models.BigIntegerField(verbose_name=u'股东人数')
 
+    def __str__(self):
+        return self.code + u' ' + self.name
+
     class Meta:
         abstract = True
 
@@ -61,3 +68,26 @@ class HorseBasicBackup(HorseBasicBase):
     class Meta:
         verbose_name = u'股票基本信息列表备份'
         db_table = TableName.horse_basic_backup
+
+
+class IndexInTimeList(models.Model):
+    """
+    大盘指数的名称列表，实际上是实时的大盘列表数据，不过暂时只想用到名称，所以不做不同时段的维护
+    """
+    code = models.CharField(max_length=10, verbose_name=u'代码')
+    name = models.CharField(max_length=20, verbose_name=u'名称')
+    change = models.DecimalField(max_digits=7, decimal_places=4, verbose_name=u'涨跌幅')
+    open = models.DecimalField(max_digits=10, decimal_places=4, verbose_name=u'开盘点位')
+    preclose = models.DecimalField(max_digits=10, decimal_places=4, verbose_name=u'昨日收盘')
+    close = models.DecimalField(max_digits=10, decimal_places=4, verbose_name=u'收盘点位')
+    high = models.DecimalField(max_digits=10, decimal_places=4, verbose_name=u'最高点位')
+    low = models.DecimalField(max_digits=10, decimal_places=4, verbose_name=u'最低点位')
+    volume = models.BigIntegerField(verbose_name=u'成交量（手）')
+    amount = models.DecimalField(max_digits=14, decimal_places=4, verbose_name=u'成交金额（亿元）')
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = u'大盘指数实时'
+        db_table = TableName.index_in_time

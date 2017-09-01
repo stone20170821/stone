@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import HorseBasic, HorseBasicBackup
+from .models import *
 from .admin_list_filters.horse_basics_list_filters import PeListFilter, PbListFilter
 
 
@@ -18,3 +18,10 @@ class HorseBasicAdmin(admin.ModelAdmin):
 @admin.register(HorseBasicBackup)
 class HorseBasicBackupAdmin(HorseBasicAdmin):
     pass
+
+
+@admin.register(IndexInTimeList)
+class IndexInTimeListAdmin(admin.ModelAdmin):
+    list_display = ('code', 'name', 'close', 'change')
+    search_fields = ('code', 'name',)
+
