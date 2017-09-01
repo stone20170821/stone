@@ -1,3 +1,4 @@
+#! encoding:utf-8
 """
 Django settings for stone project.
 
@@ -12,9 +13,9 @@ https://docs.djangoproject.com/en/1.8/ref/settings/
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
+from config import database_name
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.8/howto/deployment/checklist/
@@ -26,7 +27,6 @@ SECRET_KEY = 'he_-#5a9i9#%zc8pzoe7(_l4$84*qo3774r%s9^b-&sb72=yr9'
 DEBUG = True
 
 ALLOWED_HOSTS = []
-
 
 # Application definition
 
@@ -71,21 +71,19 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'stone.wsgi.application'
 
-
 # Database
 # https://docs.djangoproject.com/en/1.8/ref/settings/#databases
 
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'stone_zero',
+        'NAME': database_name,
         'USER': 'wgx',
         'PASSWORD': '111111',
         'HOST': '127.0.0.1',
         'PORT': '5432',
     }
 }
-
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.8/topics/i18n/
@@ -99,7 +97,6 @@ USE_I18N = True
 USE_L10N = True
 
 USE_TZ = True
-
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.8/howto/static-files/
