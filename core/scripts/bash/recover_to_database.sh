@@ -1,0 +1,1 @@
+psql -U postgres -f ${PWD}/../sql/replace_database_from_file.sql -v database_name=stone_test -v owner_name=wgx -v template_name=stone_zero
