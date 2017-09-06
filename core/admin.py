@@ -25,3 +25,17 @@ class IndexInTimeListAdmin(admin.ModelAdmin):
     list_display = ('code', 'name', 'close', 'change')
     search_fields = ('code', 'name',)
 
+
+class HorseHDataBaseAdmin(admin.ModelAdmin):
+    list_display = ('date', 'open', 'high', 'close', 'low', 'volume', 'amount')
+    search_fields = ('date', 'close',)
+    list_per_page = 20
+
+
+for key in horse_h_data_default_class_dict.keys():
+    h_data_type = type(
+        key + 'Admin',
+        (HorseHDataBaseAdmin,),
+        dict(),
+    )
+    admin.site.register(horse_h_data_default_class_dict[key], h_data_type)

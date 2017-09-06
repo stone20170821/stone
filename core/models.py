@@ -12,6 +12,47 @@ class TableName(object):
     # 大盘
     index_in_time = 'index_in_time'
 
+    @staticmethod
+    def get_h_default_name_from_code(code):
+        """
+        根据code获取表名称
+        :return:
+        :rtype: str
+        """
+        return 'horse_' + code + '_h_data_default'
+
+
+class ClassName(object):
+    @staticmethod
+    def get_h_default_name_from_code(code):
+        """
+        根据code获取class名称
+        :param code:
+        :type code:
+        :return:
+        :rtype: str
+        """
+        return 'Horse' + code + 'HDataDefault'
+
+
+class HorseHDataBase(models.Model):
+    """
+    get_h_data的返回返回内容的基础表
+    """
+    date = models.DateTimeField(verbose_name=u'交易日期')
+    open = models.DecimalField(max_digits=10, decimal_places=4, verbose_name=u'开盘价')
+    high = models.DecimalField(max_digits=10, decimal_places=4, verbose_name=u'最高价')
+    close = models.DecimalField(max_digits=10, decimal_places=4, verbose_name=u'收盘价')
+    low = models.DecimalField(max_digits=10, decimal_places=4, verbose_name=u'最低价')
+    volume = models.DecimalField(max_digits=24, decimal_places=4, verbose_name=u'成交量')
+    amount = models.DecimalField(max_digits=24, decimal_places=4, verbose_name=u'成交金额')
+
+    def __str__(self):
+        return self.date
+
+    class Meta:
+        abstract = True
+
 
 class HorseBasicBase(models.Model):
     """
@@ -91,3 +132,36 @@ class IndexInTimeList(models.Model):
     class Meta:
         verbose_name = u'大盘指数实时'
         db_table = TableName.index_in_time
+
+
+horse_h_data_default_class_dict = dict()
+
+
+def create_all_horse_h_data_default_class():
+    """
+    创建所有前复权（get_h_data默认的返回值）的数据表
+    """
+    horse_basics = HorseBasic.objects.all()
+    for horse_basic in horse_basics:
+        class_name = ClassName.get_h_default_name_from_code(str(horse_basic.code))
+        table_name = TableName.get_h_default_name_from_code(str(horse_basic.code))
+        verbose_name = 'HorseHData' + str(horse_basic.code)
+        class_type = type(
+            class_name,
+            (HorseHDataBase,),
+            dict(
+                __module__=HorseBasic.__module__,
+                Meta=type(
+                    'Meta',
+                    (),
+                    dict(
+                        db_table=table_name,
+                        verbose_name=verbose_name,
+                    ),
+                ),
+            )
+        )
+        horse_h_data_default_class_dict[class_name] = class_type
+
+# 创建所有前复权（get_h_data默认的返回值）的数据表
+create_all_horse_h_data_default_class()

@@ -2,7 +2,7 @@
 
 # 是否线上
 
-ONLINE = True
+ONLINE = False
 
 database_name = 'stone_zero'
 if not ONLINE:

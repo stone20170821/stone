@@ -19,7 +19,7 @@ engine = create_engine(database_url, echo=False)
 
 def write_dataframe_to_sql(df, table_name, if_exists='append', index=True):
     """
-    :param index:
+    :param index: index 是否作为单独的一列保存
     :param if_exists:
     :param df:
     :type df: DataFrame
