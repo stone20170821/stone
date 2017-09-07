@@ -106,15 +106,22 @@ STATIC_URL = '/static/'
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s'
+        },
+    },
     'handlers': {
         'default_file': {
             'level': 'DEBUG',
             'class': 'logging.FileHandler',
             'filename': '/Users/wgx/workspace/stone/log/%s' % info_log_name,
+            'formatter': 'verbose'
         },
         'stream': {
             'level': 'DEBUG',
             'class': 'logging.StreamHandler',
+            'formatter': 'verbose'
         }
     },
     'loggers': {

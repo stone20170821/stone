@@ -130,7 +130,7 @@ def create_h_data_default_models():
     """
     创建k_data的default（qfq）的models
     """
-    codes = HorseBasic.objects.values_list('code').all()[:5]
+    codes = HorseBasic.objects.values_list('code').all()
     for code_tuple in codes:
         code = str(code_tuple[0])
         class_name = ClassName.k_data_default(code)
