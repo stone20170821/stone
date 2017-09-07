@@ -12,6 +12,20 @@ class TableName(object):
     # 大盘
     index_in_time = 'index_in_time'
 
+    @staticmethod
+    def k_data_default(code):
+        return 'horse%s_k_data_default' % code
+
+
+class ClassName(object):
+    @staticmethod
+    def k_data_default(code):
+        return 'Horse%sKDataDefault' % code
+
+
+class ModelDicts(object):
+    k_data_default = dict()
+
 
 class HorseBasicBase(models.Model):
     """
@@ -91,3 +105,52 @@ class IndexInTimeList(models.Model):
     class Meta:
         verbose_name = u'大盘指数实时'
         db_table = TableName.index_in_time
+
+
+class HorseKDataBase(models.Model):
+    """
+    get_k_data返回的基类
+    """
+    date = models.DateTimeField(verbose_name=u'日期和时间')
+    open = models.DecimalField(max_digits=10, decimal_places=4, verbose_name=u'开盘价')
+    close = models.DecimalField(max_digits=10, decimal_places=4, verbose_name=u'收盘价')
+    high = models.DecimalField(max_digits=10, decimal_places=4, verbose_name=u'最高价')
+    low = models.DecimalField(max_digits=10, decimal_places=4, verbose_name=u'最低价')
+    volume = models.DecimalField(max_digits=16, decimal_places=4, verbose_name=u'成交量')
+    code = models.CharField(max_length=10, verbose_name=u'代码')
+
+    def __str__(self):
+        return self.date
+
+    class Meta:
+        abstract = True
+
+
+def create_h_data_default_models():
+    """
+    创建k_data的default（qfq）的models
+    """
+    codes = HorseBasic.objects.values_list('code').all()[:5]
+    for code_tuple in codes:
+        code = str(code_tuple[0])
+        class_name = ClassName.k_data_default(code)
+        table_name = TableName.k_data_default(code)
+        verbose_name = 'HorseKData' + str(code)
+        class_type = type(
+            class_name,
+            (HorseKDataBase,),
+            dict(
+                __module__=HorseKDataBase.__module__,
+                Meta=type(
+                    'Meta',
+                    (),
+                    dict(
+                        db_table=table_name,
+                        verbose_name=verbose_name,
+                    ),
+                )
+            ),
+        )
+        ModelDicts.k_data_default[code] = class_type
+
+create_h_data_default_models()

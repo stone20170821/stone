@@ -25,3 +25,16 @@ class IndexInTimeListAdmin(admin.ModelAdmin):
     list_display = ('code', 'name', 'close', 'change')
     search_fields = ('code', 'name',)
 
+
+class HorseKDataBaseAdmin(admin.ModelAdmin):
+    list_display = ('date', 'open', 'high', 'close', 'low', 'volume')
+    search_fields = ('date', 'close',)
+    list_per_page = 20
+
+for key in ModelDicts.k_data_default.keys():
+    k_data_type = type(
+        ClassName.k_data_default(key) + 'Admin',
+        (HorseKDataBaseAdmin,),
+        dict(),
+    )
+    admin.site.register(ModelDicts.k_data_default[key], k_data_type)
