@@ -8,5 +8,5 @@ def get_all_codes_from_basic():
     :return:
     :rtype: list
     """
-    code_tuples = HorseBasic.objects.values_list('code').all()
+    code_tuples = HorseBasic.objects.values_list('code').order_by('code')
     return [str(code_tuple[0]) for code_tuple in code_tuples]
