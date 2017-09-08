@@ -67,9 +67,18 @@ class Command(BaseCommand):
             cur_model = ModelDicts.k_data_default[code]
             """:type: HorseKDataBase"""
             cur_max_date = cur_model.objects.aggregate(Max('date'))['date__max']
-            start = cur_max_date + timedelta(days=1) if cur_max_date else datetime.strptime(
-                str(HorseBasic.objects.get(code=code).timeToMarket), basic_table_date_format)
-            """:type: datetime"""
+
+            # 搞定起始日期
+            if cur_max_date:
+                start = cur_max_date + timedelta(days=1)
+            else:
+                time_to_market = HorseBasic.objects.get(code=code).timeToMarket
+                if time_to_market != 0:
+                    start = datetime.strptime(str(time_to_market), basic_table_date_format)
+                else:
+                    info_logger.info('Time to market is 0. Set to 2000-01-01')
+                    start = datetime(2000, 1, 1, 0, 0, 0)
+
             end = datetime.now()
             start_str = start.strftime(common_date_format)
             end_str = end.strftime(common_date_format)
