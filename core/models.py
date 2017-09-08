@@ -120,7 +120,7 @@ class HorseKDataBase(models.Model):
     code = models.CharField(max_length=10, verbose_name=u'代码')
 
     def __str__(self):
-        return self.date
+        return str(self.date)
 
     class Meta:
         abstract = True

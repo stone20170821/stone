@@ -10,6 +10,7 @@ from core.models import *
 from conn_utils import *
 from core_time_utils import *
 from stone.stone_log_utls import *
+from core.model_utils import *
 
 
 class Command(BaseCommand):
@@ -61,10 +62,8 @@ class Command(BaseCommand):
             df = tushare.get_k_data(code, start=final_start, end=final_end)
             write_dataframe_to_sql(df, TableName.k_data_default(code), index=False)
 
-        basics = HorseBasic.objects.all()
-        codes = basics.values_list('code')
-        for code_tuple in codes:
-            code = code_tuple[0]
+        codes = get_all_codes_from_basic()
+        for code in codes:
             cur_model = ModelDicts.k_data_default[code]
             """:type: HorseKDataBase"""
             cur_max_date = cur_model.objects.aggregate(Max('date'))['date__max']
@@ -75,9 +74,10 @@ class Command(BaseCommand):
             start_str = start.strftime(common_date_format)
             end_str = end.strftime(common_date_format)
             if end_str > start_str:
+                info_logger.info('Start to download code: %s. from %s to %s.' % (code, start_str, end_str))
                 write_to_table(code, start_str, end_str)
-
-            info_logger.info('Start to download code: %s. from %s to %s.' % (code, start_str, end_str))
+            else:
+                info_logger.info('Code %s passed.' % code)
 
     def handle_get_index(self):
         """

@@ -96,7 +96,7 @@ USE_I18N = True
 
 USE_L10N = True
 
-USE_TZ = True
+USE_TZ = False
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.8/howto/static-files/
@@ -110,6 +110,9 @@ LOGGING = {
         'verbose': {
             'format': '%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s'
         },
+        'simple': {
+            'format': '%(levelname)s %(message)s'
+        },
     },
     'handlers': {
         'default_file': {
@@ -121,7 +124,7 @@ LOGGING = {
         'stream': {
             'level': 'DEBUG',
             'class': 'logging.StreamHandler',
-            'formatter': 'verbose'
+            'formatter': 'simple'
         }
     },
     'loggers': {
@@ -130,5 +133,10 @@ LOGGING = {
             'level': 'DEBUG',
             'propagate': True,
         },
+        'django.request': {
+            'handlers': ['default_file', ],
+            'level': 'DEBUG',
+            'propagate': True,
+        }
     },
 }
