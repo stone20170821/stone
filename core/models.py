@@ -16,8 +16,16 @@ class TableName(object):
     def k_data_default(code):
         return 'horse%s_k_data_default' % code
 
+    @staticmethod
+    def k_data_default_index(code):
+        return 'index%s_k_data_default' % code
+
 
 class ClassName(object):
+    @staticmethod
+    def k_data_default_index(code):
+        return 'Index%sKDataDefault' % code
+
     @staticmethod
     def k_data_default(code):
         return 'Horse%sKDataDefault' % code
@@ -126,20 +134,29 @@ class HorseKDataBase(models.Model):
         abstract = True
 
 
-def create_h_data_default_models():
+def create_k_data_default_models(is_index=False):
     """
     创建k_data的default（qfq）的models
     """
     codes = HorseBasic.objects.values_list('code').all()
+    if is_index:
+        codes = IndexInTimeList.objects.values_list('code').all()
     for code_tuple in codes:
         code = str(code_tuple[0])
         class_name = ClassName.k_data_default(code)
         table_name = TableName.k_data_default(code)
         verbose_name = 'HorseKData' + str(code)
+
+        if is_index:
+            class_name = ClassName.k_data_default_index(code)
+            table_name = TableName.k_data_default_index(code)
+            verbose_name = 'IndexKData' + str(code)
+
         class_type = type(
             class_name,
             (HorseKDataBase,),
             dict(
+                is_index=is_index,
                 __module__=HorseKDataBase.__module__,
                 Meta=type(
                     'Meta',
@@ -151,6 +168,8 @@ def create_h_data_default_models():
                 )
             ),
         )
-        ModelDicts.k_data_default[code] = class_type
+        ModelDicts.k_data_default[class_name] = class_type
 
-create_h_data_default_models()
+
+create_k_data_default_models()
+create_k_data_default_models(True)

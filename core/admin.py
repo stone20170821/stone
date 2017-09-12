@@ -1,3 +1,4 @@
+#! encoding:utf-8
 from django.contrib import admin
 
 from .models import *
@@ -31,10 +32,22 @@ class HorseKDataBaseAdmin(admin.ModelAdmin):
     search_fields = ('date', 'close',)
     list_per_page = 20
 
-for key in ModelDicts.k_data_default.keys():
-    k_data_type = type(
-        ClassName.k_data_default(key) + 'Admin',
-        (HorseKDataBaseAdmin,),
-        dict(),
-    )
-    admin.site.register(ModelDicts.k_data_default[key], k_data_type)
+# for key in ModelDicts.k_data_default.keys():
+#     k_data_type = type(
+#         ClassName.k_data_default(key) + 'Admin',
+#         (HorseKDataBaseAdmin,),
+#         dict(),
+#     )
+#     admin.site.register(ModelDicts.k_data_default[key], k_data_type)
+
+# 想看哪一个就注册哪一个
+# def register_class_in_model_dict(code, index=False):
+#     class_name = ClassName.k_data_default_index(code) if index else ClassName.k_data_default(code)
+#     k_data_type = type(
+#         class_name + 'Admin',
+#         (HorseKDataBaseAdmin,),
+#         dict(),
+#     )
+#     admin.site.register(ModelDicts.k_data_default[class_name], k_data_type)
+#
+# register_class_in_model_dict('399006', True)

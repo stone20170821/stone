@@ -16,6 +16,11 @@ from core.model_utils import *
 class Command(BaseCommand):
     help = u"下载数据并存入数据库"
 
+    # 不提供的时候参数的值，如果值为这个，应该不处理
+    PARAM_EMPTY_KEY = 'empty'
+    # 指数
+    PARAM_INDEX_KEY = 'index'
+
     def add_arguments(self, parser):
         """
 
@@ -24,33 +29,37 @@ class Command(BaseCommand):
         :return:
         """
         super(Command, self).add_arguments(parser)
+        # 这种传参方式，有以下几种情况：
+        # 不提供"--"参数，则为empty
+        # 提供"--"参数，但是没有后续，则为None
+        # 提供"--"参数，并追加参数，则为追加参数的值
+        parser.add_argument('--get_stock_basics', nargs='?', default=self.PARAM_EMPTY_KEY,
+                            help='download get_stock_basics and save')
 
-        parser.add_argument('--get_stock_basics', action='store_true', default=False,
-                            dest='get_stock_basics', help='download get_stock_basics and save')
+        parser.add_argument('--get_index', nargs='?', default=self.PARAM_EMPTY_KEY, help='update get_index and save')
 
-        parser.add_argument('--get_index', action='store_true', default=False,
-                            dest='get_index', help='update get_index and save')
-
-        parser.add_argument('--get_k_data', action='store_true', default=False,
-                            dest='get_k_data', help='update k data')
+        parser.add_argument('--get_k_data', nargs='?', default=self.PARAM_EMPTY_KEY, help='update k data')
 
     def handle(self, *args, **options):
-        if options['get_stock_basics']:
+        if options['get_stock_basics'] is None:
             self.handle_get_stock_basices()
 
-        if options['get_index']:
+        if options['get_index'] is None:
             self.handle_get_index()
 
-        if options['get_k_data']:
+        if options['get_k_data'] is None:
             self.handle_get_k_data()
+        elif options['get_k_data'] == self.PARAM_INDEX_KEY:
+            self.handle_get_k_data(index=True)
 
-    def handle_get_k_data(self):
+    def handle_get_k_data(self, index=False):
         """
         get_k_data: 历史数据，默认前复权，检查旧数据，自动更新
         """
         info_logger.info(self.handle_get_k_data.__doc__)
+        info_logger.info('index = ' + str(index))
 
-        def write_to_table(code, final_start, final_end):
+        def write_to_table(code, final_start, final_end, index=False):
             """
             :param code:
             :type code: str
@@ -59,18 +68,22 @@ class Command(BaseCommand):
             :param final_end:
             :type final_end: str
             """
-            df = tushare.get_k_data(code, start=final_start, end=final_end)
-            write_dataframe_to_sql(df, TableName.k_data_default(code), index=False)
+            df = tushare.get_k_data(code, start=final_start, end=final_end, index=index)
+            table_name = TableName.k_data_default(codes) if not index else TableName.k_data_default_index(code)
+            write_dataframe_to_sql(df, table_name, index=False)
 
-        codes = get_all_codes_from_basic()
+        codes = get_all_codes_from_models(index=index)
         for code in codes:
-            cur_model = ModelDicts.k_data_default[code]
+            cur_model = ModelDicts.k_data_default[ClassName.k_data_default(code)] \
+                if not index else ModelDicts.k_data_default[ClassName.k_data_default_index(code)]
             """:type: HorseKDataBase"""
             cur_max_date = cur_model.objects.aggregate(Max('date'))['date__max']
 
             # 搞定起始日期
             if cur_max_date:
                 start = cur_max_date + timedelta(days=1)
+            elif index:
+                start = datetime(1990, 1, 1, 0, 0, 0)
             else:
                 time_to_market = HorseBasic.objects.get(code=code).timeToMarket
                 if time_to_market != 0:
@@ -84,7 +97,7 @@ class Command(BaseCommand):
             end_str = end.strftime(common_date_format)
             if end_str > start_str:
                 info_logger.info('Start to download code: %s. from %s to %s.' % (code, start_str, end_str))
-                write_to_table(code, start_str, end_str)
+                write_to_table(code, start_str, end_str, index=index)
             else:
                 info_logger.info('Code %s passed.' % code)
 
