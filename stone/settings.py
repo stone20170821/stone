@@ -108,7 +108,7 @@ LOGGING = {
     'disable_existing_loggers': False,
     'formatters': {
         'verbose': {
-            'format': '%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s'
+            'format': '%(levelname)s %(asctime)s %(module)s %(message)s'
         },
         'simple': {
             'format': '%(levelname)s %(message)s'
@@ -125,11 +125,22 @@ LOGGING = {
             'level': 'DEBUG',
             'class': 'logging.StreamHandler',
             'formatter': 'simple'
-        }
+        },
+        'report_file': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'filename': '/Users/wgx/workspace/stone/log/%s' % report_log_name,
+            'formatter': 'verbose'
+        },
     },
     'loggers': {
         'info': {
             'handlers': ['default_file', 'stream', ],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+        'report': {
+            'handlers': ['report_file', 'stream', ],
             'level': 'DEBUG',
             'propagate': True,
         },

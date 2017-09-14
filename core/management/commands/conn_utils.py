@@ -2,7 +2,7 @@
 
 from django.conf import settings
 from sqlalchemy import create_engine
-from pandas import DataFrame, read_sql
+from pandas import DataFrame, read_sql, read_sql_table
 from django.db import models
 
 user = settings.DATABASES['default']['USER']
@@ -27,6 +27,18 @@ def write_dataframe_to_sql(df, table_name, if_exists='append', index=True):
     :return:
     """
     df.to_sql(table_name, engine, if_exists=if_exists, index=index)
+
+
+def read_dataframe_from_sql(table_name, index_col=None):
+    """
+    :param index_col:
+    :type index_col: str
+    :param table_name:
+    :type table_name: str
+    :return:
+    :rtype: DataFrame
+    """
+    return read_sql_table(table_name, engine, index_col=index_col)
 
 
 def backup_table_to_table(source, target):

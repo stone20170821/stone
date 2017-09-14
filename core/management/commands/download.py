@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 
 from core.models import *
 from conn_utils import *
-from core_time_utils import *
+from command_utils import *
 from stone.stone_log_utls import *
 from core.model_utils import *
 
@@ -74,8 +74,10 @@ class Command(BaseCommand):
 
         codes = get_all_codes_from_models(index=index)
         for code in codes:
-            cur_model = ModelDicts.k_data_default[ClassName.k_data_default(code)] \
-                if not index else ModelDicts.k_data_default[ClassName.k_data_default_index(code)]
+            if not index:
+                cur_model = ModelDicts.k_data_default[ClassName.k_data_default_index(code)]
+            else:
+                cur_model = ModelDicts.k_data_default_index[ClassName.k_data_default_index(code)]
             """:type: HorseKDataBase"""
             cur_max_date = cur_model.objects.aggregate(Max('date'))['date__max']
 

@@ -40,6 +40,7 @@ class HorseKDataBaseAdmin(admin.ModelAdmin):
 #     )
 #     admin.site.register(ModelDicts.k_data_default[key], k_data_type)
 
+
 # 想看哪一个就注册哪一个
 # def register_class_in_model_dict(code, index=False):
 #     class_name = ClassName.k_data_default_index(code) if index else ClassName.k_data_default(code)

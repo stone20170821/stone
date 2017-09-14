@@ -33,6 +33,7 @@ class ClassName(object):
 
 class ModelDicts(object):
     k_data_default = dict()
+    k_data_default_index = dict()
 
 
 class HorseBasicBase(models.Model):
@@ -168,7 +169,10 @@ def create_k_data_default_models(is_index=False):
                 )
             ),
         )
-        ModelDicts.k_data_default[class_name] = class_type
+        if not is_index:
+            ModelDicts.k_data_default[class_name] = class_type
+        else:
+            ModelDicts.k_data_default_index[class_name] = class_type
 
 
 create_k_data_default_models()
