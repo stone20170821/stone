@@ -29,7 +29,8 @@ class IndexInTimeListAdmin(admin.ModelAdmin):
 
 class HorseKDataBaseAdmin(admin.ModelAdmin):
     list_display = ('date', 'open', 'high', 'close', 'low', 'volume')
-    search_fields = ('date', 'close',)
+    search_fields = \
+        ('date', 'close',)
     list_per_page = 20
 
 # for key in ModelDicts.k_data_default.keys():
@@ -42,13 +43,13 @@ class HorseKDataBaseAdmin(admin.ModelAdmin):
 
 
 # 想看哪一个就注册哪一个
-# def register_class_in_model_dict(code, index=False):
-#     class_name = ClassName.k_data_default_index(code) if index else ClassName.k_data_default(code)
-#     k_data_type = type(
-#         class_name + 'Admin',
-#         (HorseKDataBaseAdmin,),
-#         dict(),
-#     )
-#     admin.site.register(ModelDicts.k_data_default[class_name], k_data_type)
-#
-# register_class_in_model_dict('399006', True)
+def register_class_in_model_dict(code, index=False):
+    class_name = ClassName.k_data_default_index(code) if index else ClassName.k_data_default(code)
+    k_data_type = type(
+        class_name + 'Admin',
+        (HorseKDataBaseAdmin,),
+        dict(),
+    )
+    admin.site.register(ModelDicts.k_data_default[class_name], k_data_type)
+
+register_class_in_model_dict('600171', False)

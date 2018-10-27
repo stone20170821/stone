@@ -69,13 +69,13 @@ class Command(BaseCommand):
             :type final_end: str
             """
             df = tushare.get_k_data(code, start=final_start, end=final_end, index=index)
-            table_name = TableName.k_data_default(codes) if not index else TableName.k_data_default_index(code)
+            table_name = TableName.k_data_default(code) if not index else TableName.k_data_default_index(code)
             write_dataframe_to_sql(df, table_name, index=False)
 
         codes = get_all_codes_from_models(index=index)
         for code in codes:
             if not index:
-                cur_model = ModelDicts.k_data_default[ClassName.k_data_default_index(code)]
+                cur_model = ModelDicts.k_data_default[ClassName.k_data_default(code)]
             else:
                 cur_model = ModelDicts.k_data_default_index[ClassName.k_data_default_index(code)]
             """:type: HorseKDataBase"""

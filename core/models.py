@@ -66,11 +66,17 @@ class HorseBasicBase(models.Model):
     npr = models.DecimalField(max_digits=10, decimal_places=4, verbose_name=u'净利润率（%）')
     holders = models.BigIntegerField(verbose_name=u'股东人数')
 
-    def __str__(self):
-        return self.code + u' ' + self.name
+    def __unicode__(self):
+        return self.code + ' ' + self.name
 
     class Meta:
         abstract = True
+
+
+class CfsDongfangcaijing(models.Model):
+    code = models.CharField(max_length=10, verbose_name=u'代码')
+    n_cashflow_act = models.DecimalField(max_digits=18, decimal_places=4, verbose_name=u'经营活动产生的现金流量净额')
+    report_date = models.BigIntegerField(verbose_name=u'报告日期')
 
 
 class HorseBasic(HorseBasicBase):
@@ -108,7 +114,7 @@ class IndexInTimeList(models.Model):
     volume = models.BigIntegerField(verbose_name=u'成交量（手）')
     amount = models.DecimalField(max_digits=14, decimal_places=4, verbose_name=u'成交金额（亿元）')
 
-    def __str__(self):
+    def __unicode__(self):
         return self.name
 
     class Meta:
@@ -128,7 +134,7 @@ class HorseKDataBase(models.Model):
     volume = models.DecimalField(max_digits=16, decimal_places=4, verbose_name=u'成交量')
     code = models.CharField(max_length=10, verbose_name=u'代码')
 
-    def __str__(self):
+    def __unicode__(self):
         return str(self.date)
 
     class Meta:
