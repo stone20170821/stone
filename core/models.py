@@ -32,6 +32,9 @@ class ClassName(object):
 
 
 class ModelDicts(object):
+    """
+    "classname": modelObject
+    """
     k_data_default = dict()
     k_data_default_index = dict()
 
@@ -77,6 +80,12 @@ class CfsDongfangcaijing(models.Model):
     code = models.CharField(max_length=10, verbose_name=u'代码')
     n_cashflow_act = models.DecimalField(max_digits=18, decimal_places=4, verbose_name=u'经营活动产生的现金流量净额')
     report_date = models.BigIntegerField(verbose_name=u'报告日期')
+
+
+class HorseBasicSnow(models.Model):
+    code = models.CharField(max_length=10, verbose_name=u'代码')
+    symbol = models.CharField(max_length=12, verbose_name=u'代码')
+    high52w = models.DecimalField(max_digits=5, decimal_places=4, verbose_name=u'52周最高')
 
 
 class HorseBasic(HorseBasicBase):

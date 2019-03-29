@@ -55,6 +55,9 @@ class Command(BaseCommand):
     def handle_get_k_data(self, index=False):
         """
         get_k_data: 历史数据，默认前复权，检查旧数据，自动更新
+        
+        下载所有股票，不包含指数： python manage.py download --get_k_data
+        下载所有指数： python manage.py download --get_k_data index
         """
         info_logger.info(self.handle_get_k_data.__doc__)
         info_logger.info('index = ' + str(index))

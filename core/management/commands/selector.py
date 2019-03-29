@@ -41,11 +41,15 @@ class Command(BaseCommand):
         """
         pe <= 30
         profit > 0
+        
+        1. 执行python manage.py download_cfs_dongfangcaijing --simple 更新现金流（需要几十分钟）
+        2. 执行python manage.py download --get_basic_data 更新基本数据
+        3. python manage.py selector --s20181022 开始
         ...
         :return: 
         :rtype: 
         """
-        objs = HorseBasic.objects.filter(pe__lte=30, pe__gt=0, profit__gt=0, npr__gt=0, gpr__gt=40)
+        objs = HorseBasic.objects.filter(pe__lte=30, pe__gt=0, profit__gt=0, npr__gt=0, gpr__gt=30)
         time_start = time.mktime(time.strptime('2014-1-1', '%Y-%m-%d'))
         res = list()
         x = 9
