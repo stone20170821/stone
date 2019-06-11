@@ -54,4 +54,3 @@ class Command(BaseCommand):
         print a
         print a.buy("abc", 1000, 100, day_4)
         print a
-
