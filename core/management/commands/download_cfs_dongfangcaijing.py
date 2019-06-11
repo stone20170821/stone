@@ -61,3 +61,17 @@ class Command(BaseCommand):
                 except:
                     traceback.print_exc()
                     break
+
+            # 去重
+            objs = CfsDongfangcaijing.objects.filter(code=code)
+            hash_set = set()
+            cache_list = list()
+            for obj in objs:
+                # print obj.code
+                if obj.report_date in hash_set:
+                    cache_list.append(obj)
+                else:
+                    hash_set.add(obj.report_date)
+
+            for obj in cache_list:
+                obj.delete()

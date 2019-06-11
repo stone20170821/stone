@@ -12,6 +12,9 @@ class TableName(object):
     # 大盘
     index_in_time = 'index_in_time'
 
+    # 回测结果
+    back_result = 'back_result'
+
     @staticmethod
     def k_data_default(code):
         return 'horse%s_k_data_default' % code
@@ -32,8 +35,28 @@ class ClassName(object):
 
 
 class ModelDicts(object):
+    """
+    "classname": modelObject
+    """
     k_data_default = dict()
     k_data_default_index = dict()
+
+
+class BackResult(models.Model):
+    base_line_result = models.DecimalField(max_digits=14, decimal_places=4, verbose_name=u'基准线收益')
+    base_line_code = models.CharField(max_length=10, verbose_name=u'基准线指数')
+    final_win = models.DecimalField(max_digits=14, decimal_places=4, verbose_name=u'收益')
+    back_codes = models.TextField(verbose_name=u'回测样本使用HORSE')  # 回测用到的样本，配合收益情况记录，可以直接生成图
+    win_records = models.TextField(verbose_name=u'收益情况记录')
+    date_start = models.DateTimeField(verbose_name=u'起始时间')
+    date_end = models.DateTimeField(verbose_name=u'终止时间')
+    run_time = models.DateTimeField(verbose_name=u'执行时间')
+    algorithm_category = models.CharField(max_length=100, verbose_name=u'算法分类')
+    algorithm_desc = models.CharField(max_length=100, verbose_name=u'算法描述')
+
+    class Meta:
+        verbose_name = u'回测结果'
+        db_table = TableName.back_result
 
 
 class HorseBasicBase(models.Model):
@@ -77,6 +100,12 @@ class CfsDongfangcaijing(models.Model):
     code = models.CharField(max_length=10, verbose_name=u'代码')
     n_cashflow_act = models.DecimalField(max_digits=18, decimal_places=4, verbose_name=u'经营活动产生的现金流量净额')
     report_date = models.BigIntegerField(verbose_name=u'报告日期')
+
+
+class HorseBasicSnow(models.Model):
+    code = models.CharField(max_length=10, verbose_name=u'代码')
+    symbol = models.CharField(max_length=12, verbose_name=u'代码')
+    high52w = models.DecimalField(max_digits=5, decimal_places=4, verbose_name=u'52周最高')
 
 
 class HorseBasic(HorseBasicBase):

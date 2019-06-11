@@ -2,3 +2,4 @@
 *.iml
 *.pyc
 core/migrations/*
+core/management/commands/output/
