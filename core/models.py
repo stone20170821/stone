@@ -44,15 +44,18 @@ class ModelDicts(object):
 
 class BackResult(models.Model):
     base_line_result = models.DecimalField(max_digits=14, decimal_places=4, verbose_name=u'基准线收益')
-    base_line_code = models.CharField(max_length=10, verbose_name=u'基准线指数')
+    base_line_code = models.CharField(max_length=10, verbose_name=u'基准线代码')
+    use_code = models.CharField(max_length=10, verbose_name=u'回测使用')
+    use_code_result = models.DecimalField(max_digits=14, decimal_places=4, verbose_name=u'使用代码原本收益')
     final_win = models.DecimalField(max_digits=14, decimal_places=4, verbose_name=u'收益')
-    back_codes = models.TextField(verbose_name=u'回测样本使用HORSE')  # 回测用到的样本，配合收益情况记录，可以直接生成图
+    back_codes = models.TextField(verbose_name=u'回测样本使用HORSE')  # deprecated, 改用json形式，存在win_records中，回测用到的样本，配合收益情况记录，可以直接生成图
     win_records = models.TextField(verbose_name=u'收益情况记录')
     date_start = models.DateTimeField(verbose_name=u'起始时间')
     date_end = models.DateTimeField(verbose_name=u'终止时间')
     run_time = models.DateTimeField(verbose_name=u'执行时间')
     algorithm_category = models.CharField(max_length=100, verbose_name=u'算法分类')
     algorithm_desc = models.CharField(max_length=100, verbose_name=u'算法描述')
+    param_string = models.CharField(max_length=888, verbose_name=u'算法参数')
 
     class Meta:
         verbose_name = u'回测结果'

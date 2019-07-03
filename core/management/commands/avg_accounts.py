@@ -5,7 +5,7 @@ from account import Account
 
 class MAStartAccount(Account):
     """
-    单纯的基于均线操作
+    基于均线操作，上升超过ma_length日均线买入，下降低于ma_length均线卖出
     """
 
     def __init__(self, ma_length=20, start_fond=10000000.0):
@@ -14,6 +14,9 @@ class MAStartAccount(Account):
         self.ma_length = ma_length
         self.target_axis = list()
         self.axis['hold'] = self.target_axis
+        self.ma_vs = list()
+        self.axis[str(ma_length)] = self.ma_vs
+        self.start_value = None
 
     def heartbeats(self, date, pool):
         target_horse = '000001'
@@ -22,27 +25,25 @@ class MAStartAccount(Account):
         avg = pool.average_line(date, target_horse, index=is_index, ma_length=self.ma_length)
         cur = pool.price(date, target_horse, index=is_index)
 
+        if self.start_value is None:
+            self.start_value = cur
+
         if cur > avg:
-            self.buy_account_percent(target_horse, cur, date, 1)
+            self.buy_account_percent(target_horse, cur, date, 1, is_index)
         else:
             self.sell_all(target_horse, cur, date)
 
         self.target_axis.append(self.total_hold_value() / self.start_fond)
+        self.ma_vs.append(avg / self.start_value)
 
     def param_string(self):
         return "ma_length: {}".format(self.ma_length)
 
-    @staticmethod
-    def output_dir_name():
-        return "ma_start"
+    def algorithm_category(self):
+        return "ma"
 
-    def fig_filename(self):
-        return "ma_start_{}".format(str(self.ma_length))
-
-    @staticmethod
-    def generator():
-        for i in range(5, 600, 5):
-            yield MAStartAccount(ma_length=i)
+    def algorithm_desc(self):
+        return "simple_ma"
 
 
 class MARepoShareAccount(Account):
@@ -115,15 +116,14 @@ class MARepoShareAccount(Account):
             v = ma_value_list[i]
             self.axis[str(m)].append(v / self.start_value)
 
-    @staticmethod
-    def output_dir_name():
-        return "ma_repo_share"
-
-    def fig_filename(self):
-        return "ma_repo_share_" + "_".join(str(x) for x in self.ma_list)
-
     def param_string(self):
-        return "ma_list:\n" + "\n".join(str(x) for x in self.ma_list)
+        return "ma_list:" + " ".join(str(x) for x in self.ma_list)
+
+    def algorithm_category(self):
+        return "ma"
+
+    def algorithm_desc(self):
+        return "ma_list"
 
     @staticmethod
     def generator():
@@ -143,12 +143,12 @@ class MARepoShareAccount(Account):
             yield MARepoShareAccount([d, ])
 
         # 双均线
-        s1 = range(5, 50, 5)
-        s2 = range(10, 100, 10)
-
-        for a in s1:
-            for b in s2:
-                yield MARepoShareAccount([a, b, ])
+            # s1 = range(5, 50, 5)
+            # s2 = range(10, 100, 10)
+            #
+            # for a in s1:
+            #     for b in s2:
+            #         yield MARepoShareAccount([a, b, ])
 
 
 class MASaveProfitAccount(Account):
@@ -238,3 +238,21 @@ class MASaveProfitAccount(Account):
             for e in es:
                 for n in ns:
                     yield MASaveProfitAccount(s, e, float(n) / 100)
+
+
+class MACrossAccount(Account):
+    def __init__(self, ma_list, start_fond=10000000.0):
+        super(MACrossAccount, self).__init__(start_fond)
+        self.ma_list = ma_list
+
+    def heartbeats(self, date, pool):
+        super(MACrossAccount, self).heartbeats(date, pool)
+
+    def param_string(self):
+        return "ma_cross_list: " + " ".join(str(x) for x in self.ma_list)
+
+    def algorithm_category(self):
+        return "ma"
+
+    def algorithm_desc(self):
+        return "ma_cross"

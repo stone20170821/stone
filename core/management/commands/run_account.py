@@ -4,11 +4,15 @@ from django.core.management import BaseCommand
 
 from account import InfoPool
 
-from avg_accounts import MASaveProfitAccount
+from avg_accounts import MASaveProfitAccount, MAStartAccount, MARepoShareAccount
 
 import matplotlib.pyplot as plt
 
+from core.models import BackResult
+import datetime
+
 import os
+import json
 
 colors = ['g', 'r', 'c', 'm', 'y', 'k', 'w']
 
@@ -21,27 +25,47 @@ base_index_is_index = True
 start_date = '20100105'
 # start_date = '20180107'
 
+date_format = "%Y_%m_%d_%H_%M_%S"
+
+
+def code_to_string(code, is_index):
+    res = code
+    if is_index:
+        return res + '_0'
+    else:
+        return res + '_1'
+
+
+def generator():
+    """
+    :param al_type: 
+    :type al_type: 
+    :return: 
+    :rtype: 
+    """
+    # if al_type == 0:
+    #     pass
+    #     # for i in range(300, 500):
+    #     #     yield MAStartAccount(ma_length=i)
+    # elif al_type == 1:
+    #     pass
+    #     # 单均线
+    #     ds = range(5, 200, 5)
+    #     for d in ds:
+    #         yield MARepoShareAccount([d, ])
+    return MARepoShareAccount.generator()
+
 
 class Command(BaseCommand):
+
+    def add_arguments(self, parser):
+        super(Command, self).add_arguments(parser)
+        # parser.add_argument('-t', '--type', type=int, required=True)
+
     def handle(self, *args, **options):
         p = InfoPool()
 
-        # if not os.path.exists(output_path):
-        #     os.mkdir(output_path)
-
-        # out_dir = os.path.join(output_path, MASaveProfitAccount.output_dir_name())
-
-        # if not os.path.exists(out_dir):
-        #     os.mkdir(out_dir)
-
-        # 生成执行日志
-        # log_path = os.path.join(out_dir, '000.log')
-        # with open(log_path, 'w+') as f:
-
-        index_win = 0
-        target_win_groups = list()
-
-        for a in MASaveProfitAccount.generator():
+        for a in generator():
             base_index = p.get_horse_frame(base_index_code, base_index_is_index)
             base_index_start_value = p.price(start_date, base_index_code, base_index_is_index)
             base_axis = list()
@@ -49,39 +73,29 @@ class Command(BaseCommand):
 
             ds = base_index.ix[start_date:, ['close']].index
             for d in ds:
-                date_axis.append(d)
+                date_axis.append(d.strftime(date_format))
                 base_axis.append(p.price(d, base_index_code, True) / base_index_start_value)
                 a.heartbeats(d, p)
 
             index_win = base_axis[-1] - 1
             final_win_percent = a.final_win_percent()
-            print 'index win : {}'.format(index_win)
-            print 'final win : {}'.format(final_win_percent)
+            print 'index : {}'.format(index_win)
+            print 'final : {}'.format(final_win_percent)
 
-            target_win_groups.append((final_win_percent, a.param_string()))
+            a.axis['date'] = date_axis
+            a.axis['index'] = base_axis
 
-            # if output_order:
-            #     for o in a.orders:
-            #         f.write(str(o) + '\n')
-
-            # 画图
-            # plt.figure(num=1, figsize=(36, 18))
-            # plt.plot(date_axis, base_axis, 'r', color='b')
-            # i = 0
-            # for key in a.axis:
-            #     target = a.axis[key]
-            #     plt.plot(date_axis, target, 'r', color=colors[i])
-            #     i += 1
-            # le = ['index', ]
-            # le.extend(a.axis.keys())
-            # plt.legend(le)
-            # plt.title("index win: {}\nfinal win: {}".format(base_axis[-1] - 1, a.final_win_percent()))
-            # plt.savefig(os.path.join(out_dir, a.fig_filename()))
-            # plt.close()
-
-        # 根据收益排序
-        # target_win_groups.sort(key=lambda x: x[0], reverse=True)
-
-        # f.write('index win: {}\n'.format(index_win))
-        # for target in target_win_groups:
-        #     f.write(str(target) + '\n')
+            back_result = BackResult()
+            back_result.base_line_result = index_win
+            back_result.base_line_code = code_to_string(base_index_code, base_index_is_index)
+            back_result.use_code = code_to_string(base_index_code, base_index_is_index)
+            back_result.use_code_result = index_win
+            back_result.final_win = final_win_percent
+            back_result.win_records = json.dumps(a.axis)
+            back_result.date_start = datetime.datetime.strptime(date_axis[0], date_format)
+            back_result.date_end = datetime.datetime.strptime(date_axis[-1], date_format)
+            back_result.run_time = datetime.datetime.now()
+            back_result.algorithm_category = a.algorithm_category()
+            back_result.algorithm_desc = a.algorithm_desc()
+            back_result.param_string = a.param_string()
+            back_result.save()

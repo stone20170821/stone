@@ -369,3 +369,27 @@ class Account(object):
             self.orders.append(order)
             return True
         return False
+
+    def param_string(self):
+        """
+        避免换行
+        :return: 
+        :rtype: 
+        """
+        return ""
+
+    def algorithm_category(self):
+        """
+        避免换行
+        :return: 
+        :rtype: 
+        """
+        return ""
+
+    def algorithm_desc(self):
+        """
+        避免换行
+        :return: 
+        :rtype: 
+        """
+        return ""

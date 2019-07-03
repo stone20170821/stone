@@ -27,6 +27,13 @@ class IndexInTimeListAdmin(admin.ModelAdmin):
     search_fields = ('code', 'name',)
 
 
+@admin.register(BackResult)
+class BackResultAdmin(admin.ModelAdmin):
+    list_display = ('id', 'param_string', 'base_line_result', 'final_win', 'algorithm_desc', 'date_start', 'date_end', 'run_time')
+    list_filter = ('algorithm_desc', )
+    search_fields = ('param_string', )
+
+
 class HorseKDataBaseAdmin(admin.ModelAdmin):
     list_display = ('date', 'open', 'high', 'close', 'low', 'volume')
     search_fields = \
