@@ -6,8 +6,7 @@ from stone.stone_log_utls import *
 
 from django.forms.models import model_to_dict
 
-
-from core.models import BackResult
+from core.models import BackResult, BackResultYear
 
 # Create your views here.
 
@@ -20,5 +19,11 @@ def test_logger(request):
 
 def chart(request, record_id):
     br = BackResult.objects.get(pk=record_id)
+    res = model_to_dict(br)
+    return render(request, 'chart_by_record.html', res)
+
+
+def sub_chart(request, record_id):
+    br = BackResultYear.objects.get(pk=record_id)
     res = model_to_dict(br)
     return render(request, 'chart_by_record.html', res)

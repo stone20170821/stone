@@ -1,14 +1,19 @@
 # coding:utf-8
 
 from conn_utils import read_dataframe_from_sql
-from core.models import ModelDicts, TableName
+from core.models import ModelDicts, TableName, BackResult, BackResultYear
 
 from django.core.management import BaseCommand
 
 from account import InfoPool, HoldHorse, Account
 
+from back_result_divider import BackResultYearDivider
+
 import datetime
 import time
+import json
+
+date_format = "%Y_%m_%d_%H_%M_%S"
 
 
 def build_datetime(time_str):
@@ -27,10 +32,10 @@ class Command(BaseCommand):
         :rtype: 
         """
 
-        day_1 = build_datetime('2019-03-04')
-        day_2 = build_datetime('2019-03-05')
-        day_3 = build_datetime('2019-03-06')
-        day_4 = build_datetime('2019-03-07')
+        # day_1 = build_datetime('2019-03-04')
+        # day_2 = build_datetime('2019-03-05')
+        # day_3 = build_datetime('2019-03-06')
+        # day_4 = build_datetime('2019-03-07')
 
         # # HoldHorse
         # hold = HoldHorse('abc')
@@ -45,12 +50,19 @@ class Command(BaseCommand):
         # print hold
 
         # Account
-        a = Account()
-        print a.buy("abc", 1000, 100, day_1)
-        print a
-        print a.buy("abc", 1000, 100, day_2)
-        print a
-        print a.buy("abc", 1000, 100, day_3)
-        print a
-        print a.buy("abc", 1000, 100, day_4)
-        print a
+        # a = Account()
+        # print a.buy("abc", 1000, 100, day_1)
+        # print a
+        # print a.buy("abc", 1000, 100, day_2)
+        # print a
+        # print a.buy("abc", 1000, 100, day_3)
+        # print a
+        # print a.buy("abc", 1000, 100, day_4)
+        # print a
+
+        # p = InfoPool()
+        # print p.boll(build_datetime('2019-03-05'), '600519')
+
+        brs = BackResult.objects.all()
+        for br in brs:
+            BackResultYearDivider(br).divide()

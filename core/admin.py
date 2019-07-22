@@ -29,9 +29,22 @@ class IndexInTimeListAdmin(admin.ModelAdmin):
 
 @admin.register(BackResult)
 class BackResultAdmin(admin.ModelAdmin):
-    list_display = ('id', 'param_string', 'base_line_result', 'final_win', 'algorithm_desc', 'date_start', 'date_end', 'run_time')
-    list_filter = ('algorithm_desc', )
-    search_fields = ('param_string', )
+    list_display = ('id', 'param_string', 'base_line_result', 'final_win',
+                    'max_down', 'max_down_start', 'max_down_end', 'algorithm_desc',
+                    # 'date_start', 'date_end',
+                    'base_line_code', 'use_code', 'run_time')
+    list_filter = ('algorithm_desc', 'use_code', 'base_line_code')
+    search_fields = ('param_string', 'id',)
+
+
+@admin.register(BackResultYear)
+class BackResultYearAdmin(admin.ModelAdmin):
+    list_display = ('id', 'use_year', 'param_string', 'base_line_result', 'final_win',
+                    'max_down', 'max_down_start', 'max_down_end', 'algorithm_desc',
+                    # 'date_start', 'date_end',
+                    'base_line_code', 'use_code')
+    list_filter = ('algorithm_desc', 'use_code', 'base_line_code')
+    search_fields = ('from_result__id',)
 
 
 class HorseKDataBaseAdmin(admin.ModelAdmin):

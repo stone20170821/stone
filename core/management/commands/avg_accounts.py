@@ -6,35 +6,29 @@ from account import Account
 class MAStartAccount(Account):
     """
     基于均线操作，上升超过ma_length日均线买入，下降低于ma_length均线卖出
+    
+    single run time: 600519 5.67s
     """
 
-    def __init__(self, ma_length=20, start_fond=10000000.0):
-        super(MAStartAccount, self).__init__(start_fond)
+    def __init__(self, pool, ma_length=20, start_fond=10000000.0, target_horse='000001', target_is_index=True, base_line_horse='000001', base_line_is_index=True,
+                 start_date='20100105'):
+        super(MAStartAccount, self).__init__(pool, start_fond, target_horse, target_is_index, base_line_horse, base_line_is_index, start_date)
 
         self.ma_length = ma_length
-        self.target_axis = list()
-        self.axis['hold'] = self.target_axis
         self.ma_vs = list()
         self.axis[str(ma_length)] = self.ma_vs
-        self.start_value = None
 
-    def heartbeats(self, date, pool):
-        target_horse = '000001'
-        is_index = True
+    def heartbeats(self, date):
+        avg = self.pool.average_line(date, self.base_line_horse, index=self.base_line_is_index, ma_length=self.ma_length)
+        cur_index = self.pool.price(date, self.base_line_horse, index=self.base_line_horse)
+        cur_target = self.pool.price(date, self.target_horse, index=self.target_is_index)
 
-        avg = pool.average_line(date, target_horse, index=is_index, ma_length=self.ma_length)
-        cur = pool.price(date, target_horse, index=is_index)
-
-        if self.start_value is None:
-            self.start_value = cur
-
-        if cur > avg:
-            self.buy_account_percent(target_horse, cur, date, 1, is_index)
+        if cur_index > avg:
+            self.buy_account_percent(self.target_horse, cur_target, date, 1, self.target_is_index)
         else:
-            self.sell_all(target_horse, cur, date)
+            self.sell_all(self.target_horse, cur_target, date)
 
-        self.target_axis.append(self.total_hold_value() / self.start_fond)
-        self.ma_vs.append(avg / self.start_value)
+        self.ma_vs.append(avg / self.base_index_start_value)
 
     def param_string(self):
         return "ma_length: {}".format(self.ma_length)
@@ -44,6 +38,37 @@ class MAStartAccount(Account):
 
     def algorithm_desc(self):
         return "simple_ma"
+
+    @staticmethod
+    def generator(pool):
+        """
+        all index: (10, 400)
+        600519: all index: (10, 400)
+        :param pool: 
+        :type pool: 
+        :return: 
+        :rtype: 
+        """
+        # for m in range(10, 400):
+        #     yield MAStartAccount(pool, ma_length=m,
+        #                          base_line_horse='000300', base_line_is_index=True,
+        #                          target_horse='000300', target_is_index=True)
+        #
+        # for m in range(10, 400):
+        #     yield MAStartAccount(pool, ma_length=m,
+        #                          base_line_horse='399006', base_line_is_index=True,
+        #                          target_horse='399006', target_is_index=True)
+
+        for m in range(10, 400):
+            for i in Account.CONSIDER_INDEX:
+                yield MAStartAccount(pool, ma_length=m,
+                                     base_line_horse=i, base_line_is_index=True,
+                                     target_horse='600519', target_is_index=False)
+
+                # for m in range(10, 400):
+                #     yield MAStartAccount(pool, ma_length=m,
+                #                          base_line_horse='000905', base_line_is_index=True,
+                #                          target_horse='000905', target_is_index=True)
 
 
 class MARepoShareAccount(Account):
@@ -94,19 +119,26 @@ class MARepoShareAccount(Account):
         for i in range(0, self.ma_list_length):
             ma_value = ma_value_list[i]
             origin_compare = self.ma_compare_list[i]
+            # print '________________________'
+            # print date
 
             if cur > ma_value:
+                # print 'up'
+                # print 'origin compare: ' + str(origin_compare)
                 if not origin_compare:
                     count = self.buy_account_percent(self.target_horse, cur, date, self.divider, self.target_is_index)
+                    # print 'buy count: ' + str(count)
                     if count > 0:
                         self.buy_ma_list[i] = count
 
                 self.ma_compare_list[i] = True
             else:
                 if cur < ma_value:
+                    # print 'down'
                     if self.buy_ma_list[i] > 0:
-
+                        # print 'try sell'
                         if self.sell(self.target_horse, cur, self.buy_ma_list[i], date):
+                            # print 'sell success'
                             self.buy_ma_list[i] = 0
                 self.ma_compare_list[i] = False
 
@@ -138,17 +170,20 @@ class MARepoShareAccount(Account):
         # yield MARepoShareAccount([20, 30, 60])
 
         # 单均线
-        ds = range(5, 200, 5)
-        for d in ds:
-            yield MARepoShareAccount([d, ])
+        # ds = range(5, 200, 5)
+        # for d in ds:
+        #     yield MARepoShareAccount([d, ])
+
+        # 测试
+        yield MARepoShareAccount([64, 244, ])
 
         # 双均线
-            # s1 = range(5, 50, 5)
-            # s2 = range(10, 100, 10)
-            #
-            # for a in s1:
-            #     for b in s2:
-            #         yield MARepoShareAccount([a, b, ])
+        # s1 = range(5, 300, 5)
+        # s2 = range(5, 300, 5)
+        #
+        # for a in s1:
+        #     for b in s2:
+        #         yield MARepoShareAccount([a, b, ])
 
 
 class MASaveProfitAccount(Account):
@@ -241,18 +276,69 @@ class MASaveProfitAccount(Account):
 
 
 class MACrossAccount(Account):
-    def __init__(self, ma_list, start_fond=10000000.0):
-        super(MACrossAccount, self).__init__(start_fond)
-        self.ma_list = ma_list
+    """
+    enter_start > enter_end: enter
+    leave_start < leave_end: leave
+    :param ma_tuple: (enter_start, enter_end, leave_start, leave_end) 
+    :type ma_tuple: tuple
+    :param start_fond: 
+    :type start_fond: 
+    """
 
-    def heartbeats(self, date, pool):
-        super(MACrossAccount, self).heartbeats(date, pool)
+    def __init__(self, pool, ma_tuple, start_fond=10000000.0, target_horse='000001', target_is_index=True, base_line_horse='000001', base_line_is_index=True,
+                 start_date='20100105'):
+        super(MACrossAccount, self).__init__(pool, start_fond, target_horse, target_is_index, base_line_horse, base_line_is_index, start_date)
+
+        self.ma_tuple = ma_tuple
+
+        self.cur_ma_price = list()
+        self.is_holding = False
+
+        ma_set = set()
+
+        for m in self.ma_tuple:
+            if m not in ma_set:
+                ma_set.add(m)
+                self.axis[str(m)] = list()
+
+    def heartbeats(self, date):
+        super(MACrossAccount, self).heartbeats(date)
+
+        avg_dict = dict()
+        avg_price_list = list()
+
+        for t in self.ma_tuple:
+            if t not in avg_dict:
+                avg_dict[t] = self.pool.average_line(date, self.base_line_horse, self.base_line_is_index, ma_length=t)
+            avg_price_list.append(avg_dict[t])
+
+        # enter_start = self.pool.average_line(date, self.base_line_horse, self.base_line_is_index, ma_length=self.ma_tuple[0])
+        # enter_end = self.pool.average_line(date, self.base_line_horse, self.base_line_is_index, ma_length=self.ma_tuple[1])
+        # leave_start = self.pool.average_line(date, self.base_line_horse, self.base_line_is_index, ma_length=self.ma_tuple[2])
+        # leave_end = self.pool.average_line(date, self.base_line_horse, self.base_line_is_index, ma_length=self.ma_tuple[3])
+        cur_price = self.pool.price(date, self.target_horse, self.target_is_index)
+
+        if not self.is_holding:
+            if avg_price_list[0] > avg_price_list[1]:
+                if self.buy_account_percent(self.target_horse, cur_price, date, 1, self.target_is_index):
+                    self.is_holding = True
+        else:
+            if avg_price_list[2] < avg_price_list[3]:
+                if self.sell_all(self.target_horse, cur_price, date):
+                    self.is_holding = False
+
+        for k in avg_dict.keys():
+            self.axis[str(k)].append(avg_dict[k] / self.base_index_start_value)
 
     def param_string(self):
-        return "ma_cross_list: " + " ".join(str(x) for x in self.ma_list)
+        return "ma_cross_list: " + " ".join(str(x) for x in self.ma_tuple)
 
     def algorithm_category(self):
         return "ma"
 
     def algorithm_desc(self):
         return "ma_cross"
+
+    @staticmethod
+    def generator(pool):
+        yield MACrossAccount(pool, (20, 30, 20, 30))
