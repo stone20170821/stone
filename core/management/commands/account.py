@@ -9,21 +9,12 @@ from core.model_utils import get_all_codes_from_models
 from conn_utils import read_dataframe_from_sql
 from core.models import TableName, BackResult
 from back_result_divider import BackResultYearDivider
+from order_analysis import OrderAnalysis
+from horse_order import HorseOrder
+from command_utils import date_format
 
-date_format = "%Y_%m_%d_%H_%M_%S"
-
-
-@functools32.lru_cache
-def get_horse_frame():
-    pass
-
-
-def code_to_string(code, is_index):
-    res = code
-    if is_index:
-        return res + '_0'
-    else:
-        return res + '_1'
+# 计算price、avg、boll等值时的缓存数量
+lru_cache_num = 5000
 
 
 def read_code(code, index=False):
@@ -52,6 +43,9 @@ class InfoPool(object):
         self.src = dict()
         """:type: dict[str, pd.DataFrame]"""
 
+        self.macd_dict = dict()
+        """:type: dict[str, dict[datetime.datetime, float]]"""
+
         if not self.lazy:
             need_index = ['000001', '399001']
             for code in need_index:
@@ -61,6 +55,7 @@ class InfoPool(object):
             for code in codes:
                 self.src[code] = read_code(code)
 
+    @functools32.lru_cache(lru_cache_num)
     def price(self, date, horse_name, index=False, column="close"):
         try:
             df = self.get_horse_frame(horse_name, index)
@@ -84,6 +79,7 @@ class InfoPool(object):
             self.src[name] = read_code(code, index)
         return self.src[name]
 
+    @functools32.lru_cache(lru_cache_num * 10)
     def average_line(self, date, horse_name, index=False, ma_length=20, column='close'):
         """
         天数不足ma_length，则取所有天数的平均值，例如，前4天的20日均线，值为4天平均值
@@ -107,51 +103,26 @@ class InfoPool(object):
         df = self.get_horse_frame(horse_name, index)
         window = df.ix[:date, [column]].iloc[-ma_length:]
         sta = window.std()[column]
-        avg = window.mean()[column]
+        avg = self.average_line(date, horse_name, index, ma_length, column)
         return avg, avg + p * sta, avg - p * sta
 
     # def macd(self, date, horse_name, index=False, start=12, middle=9, end=26, column='close'):
     #     df = self.get_horse_frame(horse_name, index)
     #     window = df.ix[:date, [column]].iloc[-ma_length:]
 
+    def macd(self, date, horse_name, index=False, x=12, y=26, column='close'):
+        df = self.get_horse_frame(horse_name, index)
+        horse_macd_key = self.parse_horse_name(horse_name, index)
+
+        if horse_macd_key not in self.macd_dict:
+            self.macd_dict[horse_macd_key] = dict()
+
+            # last_ema_12 =
+
     @staticmethod
     def parse_horse_name(horse_name, index):
         return horse_name if not index else horse_name + 'i'
 
-
-class HorseOrder(object):
-    BUY = "buy"
-    SELL = "sell"
-
-    __TAX_PERCENT = 0.003
-
-    def __init__(self, opt, price, volume, date):
-        super(HorseOrder, self).__init__()
-        self.opt = opt
-        self.price = price
-        self.volume = volume
-        self.date = date
-
-    def __str__(self):
-        return "opt: {}\tprice: {}\tvolume: {}\tdate: {}".format(
-            self.opt, self.price, self.volume, self.date
-        )
-
-    def tax(self):
-        """
-        税直接收取千分之三
-        """
-        return self.price * self.volume * self.__TAX_PERCENT
-
-    @staticmethod
-    def pure_tax(opt, price, volume):
-        return price * volume * HorseOrder.__TAX_PERCENT
-
-    def receive(self):
-        return self.price * self.volume - self.tax() if self.opt == self.SELL else 0
-
-    def cost(self):
-        return self.price * self.volume + self.tax() if self.opt == self.BUY else 0
 
 
 class HoldHorse(object):
@@ -218,7 +189,7 @@ class HoldHorse(object):
             self.unavail[date] = (price, volume)
         self._calculate_avail_and_cost_price()
 
-        order = HorseOrder(HorseOrder.BUY, price, volume, date)
+        order = HorseOrder(HorseOrder.BUY, price, volume, date, self.name, self.index)
         self.orders.append(order)
         return order
 
@@ -239,7 +210,7 @@ class HoldHorse(object):
             # 总数
             self.total_volume -= volume
 
-            order = HorseOrder(HorseOrder.SELL, price, volume, date)
+            order = HorseOrder(HorseOrder.SELL, price, volume, date, self.name, self.index)
             self.orders.append(order)
             return order
         else:
@@ -296,7 +267,7 @@ class Account(object):
         self.cur_holds = dict()
         """:type: dict[str, HoldHorse]"""
         self.orders = list()
-        """:type: list[Order]"""
+        """:type: list[HorseOrder]"""
         self.axis = dict()
         """:type: dict[str, list]"""
 
@@ -316,6 +287,18 @@ class Account(object):
 
         # 获取target和index的值，如果target就是index，只存index
         self.base_index_frame = self.pool.get_horse_frame(self.base_line_horse, self.base_line_is_index)
+
+        # 找到base_line的2010年后的第一个日期
+        real_start_date = start_date
+        it_d = start_date
+        for i in range(0, 50000):
+            it_dd = (datetime.datetime.strptime(it_d, '%Y%m%d') + datetime.timedelta(days=i)).strftime('%Y%m%d')
+            if it_dd in self.base_index_frame.index:
+                real_start_date = it_dd
+                break
+
+        self.start_date = real_start_date
+
         self.base_index_start_value = self.pool.price(self.start_date, self.base_line_horse, self.base_line_is_index)
         self.cur_base_index_price = self.base_index_start_value
 
@@ -327,7 +310,7 @@ class Account(object):
             self.target_axis = list()
             self.axis['target'] = self.target_axis
 
-        self.date_axis_origin = self.base_index_frame.ix[start_date:, ['close']].index
+        self.date_axis_origin = self.base_index_frame.ix[self.start_date:, ['close']].index
         self.date_str_axis = list()
         self.axis['date'] = self.date_str_axis
         # self.axis['date'] = [d.strftime(date_format) for d in self.date_axis_origin]
@@ -410,22 +393,28 @@ class Account(object):
             self.max_down_start = self.saved_max_down_start
             self.max_down_end = date
 
+    @staticmethod
+    def code_to_string(code, is_index):
+        res = code
+        if is_index:
+            return res + '_0'
+        else:
+            return res + '_1'
+
     def done_this_round(self):
         index_win = self.index_axis[-1] - 1
         final_win = self.final_win_percent()
 
-        # 保存最后一年的结果
-
         # 保存整体结果
         back_result = BackResult()
         back_result.base_line_result = index_win
-        back_result.base_line_code = code_to_string(self.base_line_horse, self.base_line_is_index)
+        back_result.base_line_code = self.code_to_string(self.base_line_horse, self.base_line_is_index)
 
         if self.need_consider_target():
-            back_result.use_code = code_to_string(self.target_horse, self.target_is_index)
+            back_result.use_code = self.code_to_string(self.target_horse, self.target_is_index)
             back_result.use_code_result = self.target_axis[-1] - 1
         else:
-            back_result.use_code = code_to_string(self.base_line_horse, self.base_line_is_index)
+            back_result.use_code = self.code_to_string(self.base_line_horse, self.base_line_is_index)
             back_result.use_code_result = index_win
 
         back_result.final_win = final_win
@@ -439,9 +428,20 @@ class Account(object):
         back_result.max_down = self.cur_max_down
         back_result.max_down_start = self.max_down_start if self.max_down_start else datetime.datetime.today()
         back_result.max_down_end = self.max_down_end if self.max_down_end else datetime.datetime.today()
+        back_result.orders = "**".join([order.to_json_string() for order in self.orders])
+
+        order_ana = OrderAnalysis(self.orders)
+        order_ana.calculate()
+        back_result.buy_sell_success_rate = order_ana.buy_sell_success_rate
+        back_result.total_hold_day_count = order_ana.total_hold_day_count
+        back_result.avg_hold_day_count = order_ana.avg_hold_day_count
+        back_result.buy_count = order_ana.buy_count
+        back_result.sell_count = order_ana.sell_count
+        back_result.up_list = ','.join([str(up) for up in order_ana.up_list])
+
         back_result.save()
 
-        BackResultYearDivider(back_result).divide()
+        BackResultYearDivider(back_result, self.orders).divide()
 
     def enough_to_buy(self, price, volume):
         # print 'enough_to_buy: {} {} {} {}'.format(self.cur_fond, price, volume, HorseOrder.pure_tax(HorseOrder.BUY, price, volume))

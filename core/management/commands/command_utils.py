@@ -6,9 +6,29 @@ from collections import Iterable
 common_date_format = '%Y-%m-%d'
 basic_table_date_format = '%Y%m%d'
 
+date_format = "%Y_%m_%d_%H_%M_%S"
+
 divider_h1 = "============================================================="
 divider_h2 = "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
 divider_h3 = "-------------------------------------------------------------"
+
+
+def iterate_for_all(use_model, need_print=False):
+    count = use_model.objects.count()
+
+    i = 0
+    cur_id = 0
+    while i < count:
+        if need_print:
+            print i
+
+        try:
+            obj = use_model.objects.get(pk=cur_id)
+            i += 1
+            yield obj
+        except:
+            pass
+        cur_id += 1
 
 
 def max_index_and_value(values):

@@ -59,6 +59,13 @@ class BackResult(models.Model):
     max_down = models.DecimalField(max_digits=10, decimal_places=4, verbose_name=u'最大回撤')
     max_down_start = models.DateTimeField(verbose_name=u'最大回撤起始')
     max_down_end = models.DateTimeField(verbose_name=u'最大回撤结束')
+    orders = models.TextField(verbose_name=u'订单记录')
+    buy_sell_success_rate = models.DecimalField(max_digits=5, decimal_places=4, verbose_name=u'信号成功率')
+    total_hold_day_count = models.IntegerField(verbose_name=u'持有天数')
+    avg_hold_day_count = models.DecimalField(max_digits=9, decimal_places=4, verbose_name=u'平均持有天数')
+    buy_count = models.IntegerField(verbose_name=u'买入次数')
+    sell_count = models.IntegerField(verbose_name=u'卖出次数')
+    up_list = models.TextField(verbose_name=u'买卖单次收益')
 
     def __unicode__(self):
         return self.param_string
@@ -85,6 +92,13 @@ class BackResultYear(models.Model):
     max_down = models.DecimalField(max_digits=10, decimal_places=4, verbose_name=u'最大回撤')
     max_down_start = models.DateTimeField(verbose_name=u'最大回撤起始')
     max_down_end = models.DateTimeField(verbose_name=u'最大回撤结束')
+    orders = models.TextField(verbose_name=u'订单记录')
+    buy_sell_success_rate = models.DecimalField(max_digits=5, decimal_places=4, verbose_name=u'信号成功率')
+    total_hold_day_count = models.IntegerField(verbose_name=u'持有天数')
+    avg_hold_day_count = models.DecimalField(max_digits=9, decimal_places=4, verbose_name=u'平均持有天数')
+    buy_count = models.IntegerField(verbose_name=u'买入次数')
+    sell_count = models.IntegerField(verbose_name=u'卖出次数')
+    up_list = models.TextField(verbose_name=u'买卖单次收益')
 
     from_result = models.ForeignKey(BackResult)
     use_year = models.IntegerField(verbose_name=u'年份')

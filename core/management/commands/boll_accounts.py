@@ -48,7 +48,7 @@ class SimpleBollAccount(Account):
         self.down.append(down / self.base_index_start_value)
 
     def param_string(self):
-        return "simple_boll: {} p {}".format(self.ma_length, self.p)
+        return "simple_boll: {} p {}".format(self.ma_length, self.p).replace(' ', '_').replace(':', '_')
 
     def algorithm_category(self):
         return "boll"
@@ -60,19 +60,21 @@ class SimpleBollAccount(Account):
     def generator(pool):
         """
         target base param
-        000001 000001 (10, 205, 5), (10, 90)
-        399001 399001 (10, 90)
-        600519: all index : (10, 90): (1.5, 3.6)
-        000651: all index : (10, 90): (1.5, 3.6)
-        600519：600519: (10, 90): (1.5, 3.6)
-        000651: 000651 : (10, 90): (1.5, 3.6)
-        600585: 600585 : (10, 90): (1.5, 3.6) done
-        600171: 600171 : (10, 90): (1.5, 3.6) done
-        002468: 002468 : (10, 90): (1.5, 3.6) doing
-        600030: 600030 : (10, 90): (1.5, 3.6) doing
-        000333: 000333 : (10, 90): (1.5, 3.6) doing
+        600519：600519: (10, 90): (1.5, 3.6) done
+        000651: 000651 : (10, 90): (1.5, 3.6) ready
+        600585: 600585 : (10, 90): (1.5, 3.6) ready
+        600171: 600171 : (10, 90): (1.5, 3.6) ready
+        002468: 002468 : (10, 90): (1.5, 3.6) ready
+        600030: 600030 : (10, 90): (1.5, 3.6) ready
+        000333: 000333 : (10, 90): (1.5, 3.6) ready
         601318: 601318 : (10, 90): (1.5, 3.6) ready
         600999: 600999 : (10, 90): (1.5, 3.6) ready
+        600660: 600660 : (10, 90): (1.5, 3.6) ready
+        002032: 002032 : (10, 90): (1.5, 3.6) ready
+        
+        300039: 300039 : (10, 90): (1.5, 3.6) ready
+        600754: 600754 : (10, 90): (1.5, 3.6) ready
+        600886: 600886 : (10, 90): (1.5, 3.6) ready
         :param pool: 
         :type pool: 
         :return: 
@@ -113,18 +115,31 @@ class SimpleBollAccount(Account):
         #                                 base_line_horse='600030', base_line_is_index=False,
         #                                 target_horse='600030', target_is_index=False)
 
+        # run_list = (
+        #     '000651', '600585', '600171', '002468', '600030',
+        #     '000333', '601318', '600999', '600660', '002032'
+        # )
+
+        # run_list = (
+        #     '000651', '600585', '600171', '002468', '600030',
+        #     '000333', '601318', '600999', '600660', '002032'
+        # )
+
         # ready
-        # for ma in range(10, 90):
-        #     for p in range(15, 36):
-        #         yield SimpleBollAccount(pool, ma, p / 10.0,
-        #                                 base_line_horse='601318', base_line_is_index=False,
-        #                                 target_horse='601318', target_is_index=False)
+        # for t in run_list:
+        #     for ma in range(10, 90):
+        #         for p in range(15, 36):
+        #             yield SimpleBollAccount(pool, ma, p / 10.0,
+        #                                     base_line_horse=t, base_line_is_index=False,
+        #                                     target_horse=t, target_is_index=False,
+        #                                     # start_date='20100107'
+        #                                     )
 
-        # for ma in range(10, 90):
-        #     for p in range(15, 36):
-        #         yield SimpleBollAccount(pool, ma, p / 10.0,
-        #                                 base_line_horse='600999', base_line_is_index=False,
-        #                                 target_horse='600999', target_is_index=False)
+        # yield SimpleBollAccount(pool, 20, 2.5, base_line_horse='600519', base_line_is_index=False,
+        #                         target_horse='600519', target_is_index=False)
 
-
-
+        yield SimpleBollAccount(pool, 20, 2.5,
+                                base_line_horse='000333', base_line_is_index=False,
+                                target_horse='000333', target_is_index=False,
+                                # start_date='20100107'
+                                )

@@ -1,6 +1,7 @@
 # coding:utf-8
 
 from account import Account
+from core.models import BackResult
 
 
 class MAStartAccount(Account):
@@ -331,7 +332,7 @@ class MACrossAccount(Account):
             self.axis[str(k)].append(avg_dict[k] / self.base_index_start_value)
 
     def param_string(self):
-        return "ma_cross_list: " + " ".join(str(x) for x in self.ma_tuple)
+        return "ma_cross_list__" + "_".join(str(x) for x in self.ma_tuple)
 
     def algorithm_category(self):
         return "ma"
@@ -341,4 +342,35 @@ class MACrossAccount(Account):
 
     @staticmethod
     def generator(pool):
-        yield MACrossAccount(pool, (20, 30, 20, 30))
+        """
+        
+        :param pool: 
+        :type pool: 
+        :return: 
+        :rtype: 
+        """
+        params_pair = list()
+        for start in range(10, 200, 20):
+            for step in range(20, 190, 20):
+                if start + step <= 200:
+                    params_pair.append((start, start + step))
+
+        for param0 in params_pair:
+            for param1 in params_pair:
+                print '{} {}'.format(param0, param1)
+                ac = MACrossAccount(pool, (param0[0], param0[1], param1[0], param1[1]),
+                                    base_line_horse='600519', base_line_is_index=False,
+                                    target_horse='600519', target_is_index=False)
+
+                fi = BackResult.objects.filter(param_string=ac.param_string(),
+                                               use_code=ac.code_to_string(ac.target_horse, ac.target_is_index),
+                                               base_line_code=ac.code_to_string(ac.base_line_horse, ac.base_line_is_index))
+
+                if len(fi) > 0:
+                    print 'existed'
+                    continue
+                else:
+                    yield ac
+
+                    # yield MACrossAccount(pool, (10, 30, 10, 30), target_horse='600519', target_is_index=False,
+                    #                      base_line_horse='600519', base_line_is_index=False)

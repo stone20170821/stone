@@ -32,7 +32,9 @@ class BackResultAdmin(admin.ModelAdmin):
     list_display = ('id', 'param_string', 'base_line_result', 'final_win',
                     'max_down', 'max_down_start', 'max_down_end', 'algorithm_desc',
                     # 'date_start', 'date_end',
-                    'base_line_code', 'use_code', 'run_time')
+                    'base_line_code', 'use_code', 'run_time',
+                    'buy_sell_success_rate', 'total_hold_day_count',
+                    'avg_hold_day_count', 'buy_count', 'sell_count')
     list_filter = ('algorithm_desc', 'use_code', 'base_line_code')
     search_fields = ('param_string', 'id',)
 
