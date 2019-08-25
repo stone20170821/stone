@@ -6,6 +6,7 @@ from account import InfoPool
 
 from avg_accounts import MASaveProfitAccount, MAStartAccount, MARepoShareAccount, MACrossAccount
 from boll_accounts import SimpleBollAccount
+from macd_accounts import MacdGoldCrossAccount
 
 import matplotlib.pyplot as plt
 
@@ -78,9 +79,10 @@ def generator(pool):
     #     for d in ds:
     #         yield MARepoShareAccount([d, ])
     # return MARepoShareAccount.generator()
-    return SimpleBollAccount.generator(pool)
+    # return SimpleBollAccount.generator(pool)
     # return MAStartAccount.generator(pool)
     # return MACrossAccount.generator(pool)
+    return MacdGoldCrossAccount.generator(pool)
 
 
 class Command(BaseCommand):

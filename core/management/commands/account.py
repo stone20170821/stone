@@ -65,6 +65,7 @@ class InfoPool(object):
             print '{} date {} not exist'.format(horse_name, date)
             return None
 
+    @functools32.lru_cache(5)
     def get_horse_frame(self, code, index=False):
         """
         :param code: 
@@ -110,14 +111,49 @@ class InfoPool(object):
     #     df = self.get_horse_frame(horse_name, index)
     #     window = df.ix[:date, [column]].iloc[-ma_length:]
 
-    def macd(self, date, horse_name, index=False, x=12, y=26, column='close'):
+    @functools32.lru_cache(lru_cache_num)
+    def get_pre_date(self, date, horse_name, index=False):
         df = self.get_horse_frame(horse_name, index)
-        horse_macd_key = self.parse_horse_name(horse_name, index)
+        try:
+            res = df[df.index < date].iloc[-1].name
+            if self.price(res, horse_name, index) is not None:
+                return res
+            else:
+                return None
+        except:
+            print('pre date not exist or error')
+            return None
 
-        if horse_macd_key not in self.macd_dict:
-            self.macd_dict[horse_macd_key] = dict()
+    @functools32.lru_cache(lru_cache_num * 10)
+    def ema(self, date, horse_name, ma_length, index=False):
+        pre_date = self.get_pre_date(date, horse_name, index)
+        if pre_date is not None and self.get_horse_frame(horse_name, index).loc[pre_date] is not None:
+            pre_ema = self.ema(pre_date, horse_name, ma_length, index)
+            cur_price = self.price(date, horse_name, index)
+            # if pre_ema is not None:
+            res = pre_ema * (ma_length - 1) / float(ma_length + 1) + cur_price * 2 / float(ma_length + 1)
+            # else:
+            #     res = self.price(date, horse_name, index)
+            # print('ema normal {} : {}'.format(ma_length, res))
+            return res
+        else:
+            # print('ema first date {} value {} : {}'.format(date, ma_length, self.price(date, horse_name, index)))
+            return self.price(date, horse_name, index)
 
-            # last_ema_12 =
+    @functools32.lru_cache(lru_cache_num * 10)
+    def dem(self, date, horse_name, index=False, start=12, end=26, dea_length=9):
+        pre_date = self.get_pre_date(date, horse_name, index)
+        if pre_date is not None and self.get_horse_frame(horse_name, index).loc[pre_date] is not None:
+            pre_dea = self.dem(pre_date, horse_name, index, start, end, dea_length)[1]
+            diff = self.ema(date, horse_name, start, index) - self.ema(date, horse_name, end, index)
+            dea = pre_dea * (dea_length - 1) / (dea_length + 1) + diff * 2 / (dea_length + 1)
+            # 快线，慢线，bar
+            return diff, dea, diff - dea
+        else:
+            return 0, 0, 0
+
+    def macd(self, date, horse_name, index=False, start=12, end=26, dea_length=9):
+        return self.dem(date, horse_name, index, start, end, dea_length)
 
     @staticmethod
     def parse_horse_name(horse_name, index):
@@ -293,7 +329,7 @@ class Account(object):
         it_d = start_date
         for i in range(0, 50000):
             it_dd = (datetime.datetime.strptime(it_d, '%Y%m%d') + datetime.timedelta(days=i)).strftime('%Y%m%d')
-            if it_dd in self.base_index_frame.index:
+            if it_dd in self.base_index_frame.index and len(self.base_index_frame[it_dd]['close']) > 0:
                 real_start_date = it_dd
                 break
 
@@ -441,7 +477,7 @@ class Account(object):
 
         back_result.save()
 
-        BackResultYearDivider(back_result, self.orders).divide()
+        # BackResultYearDivider(back_result, self.orders).divide()
 
     def enough_to_buy(self, price, volume):
         # print 'enough_to_buy: {} {} {} {}'.format(self.cur_fond, price, volume, HorseOrder.pure_tax(HorseOrder.BUY, price, volume))

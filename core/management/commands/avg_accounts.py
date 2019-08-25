@@ -349,28 +349,51 @@ class MACrossAccount(Account):
         :return: 
         :rtype: 
         """
-        params_pair = list()
-        for start in range(10, 200, 20):
-            for step in range(20, 190, 20):
-                if start + step <= 200:
-                    params_pair.append((start, start + step))
 
-        for param0 in params_pair:
-            for param1 in params_pair:
-                print '{} {}'.format(param0, param1)
-                ac = MACrossAccount(pool, (param0[0], param0[1], param1[0], param1[1]),
-                                    base_line_horse='600519', base_line_is_index=False,
-                                    target_horse='600519', target_is_index=False)
+        run_list = (
+            # '000651', '600585', '600171', '002468', '600030',
+            # '000333', '601318', '600999', '600660',
+            # '002032',
+            # '300039'
+            # '600612', '600104', '600754', '600886', '601588',
+            # '600809', '600028', '601398', '601088', '000650'
+            # '603260', '600600', '300296', '002563', '000848', '002242'
+            # '601828', '600398', '002233', '002327', '600703',
+            # '002422', '600597', '000513'
+            # '600547', '600988', '002155', '002697', '002736',
+            # '000776',
+            # '601988', '600028', '600859', '601928', '603008',
+            # '002640', '002769', '603199'
+            '601688', '601186', '601669', '601800', '601618',
+            '601390', '600820', '600170'
+        )
 
-                fi = BackResult.objects.filter(param_string=ac.param_string(),
-                                               use_code=ac.code_to_string(ac.target_horse, ac.target_is_index),
-                                               base_line_code=ac.code_to_string(ac.base_line_horse, ac.base_line_is_index))
+        # run_list = ('000001', '399001', '000300', '399006', '399005', '000905')
+        is_index = False
 
-                if len(fi) > 0:
-                    print 'existed'
-                    continue
-                else:
-                    yield ac
+        for target in run_list:
+            params_pair = list()
+            for start in range(10, 200, 20):
+                for step in range(20, 190, 20):
+                    if start + step <= 200:
+                        params_pair.append((start, start + step))
+
+            for param0 in params_pair:
+                for param1 in params_pair:
+                    print '{} {}'.format(param0, param1)
+                    ac = MACrossAccount(pool, (param0[0], param0[1], param1[0], param1[1]),
+                                        base_line_horse=target, base_line_is_index=is_index,
+                                        target_horse=target, target_is_index=is_index)
+
+                    fi = BackResult.objects.filter(param_string=ac.param_string(),
+                                                   use_code=ac.code_to_string(ac.target_horse, ac.target_is_index),
+                                                   base_line_code=ac.code_to_string(ac.base_line_horse, ac.base_line_is_index))
+
+                    if len(fi) > 0:
+                        print 'existed'
+                        continue
+                    else:
+                        yield ac
 
                     # yield MACrossAccount(pool, (10, 30, 10, 30), target_horse='600519', target_is_index=False,
                     #                      base_line_horse='600519', base_line_is_index=False)

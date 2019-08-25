@@ -1,6 +1,7 @@
 # coding:utf-8
 
 from account import Account, InfoPool
+from core.models import BackResult
 
 
 class SimpleBollAccount(Account):
@@ -71,8 +72,8 @@ class SimpleBollAccount(Account):
         600999: 600999 : (10, 90): (1.5, 3.6) ready
         600660: 600660 : (10, 90): (1.5, 3.6) ready
         002032: 002032 : (10, 90): (1.5, 3.6) ready
-        
         300039: 300039 : (10, 90): (1.5, 3.6) ready
+        
         600754: 600754 : (10, 90): (1.5, 3.6) ready
         600886: 600886 : (10, 90): (1.5, 3.6) ready
         :param pool: 
@@ -120,26 +121,50 @@ class SimpleBollAccount(Account):
         #     '000333', '601318', '600999', '600660', '002032'
         # )
 
-        # run_list = (
-        #     '000651', '600585', '600171', '002468', '600030',
-        #     '000333', '601318', '600999', '600660', '002032'
-        # )
+        run_list = (
+            #'000651', '600585', '600171', '002468', '600030',
+            #'000333', '601318', '600999', '600660',
+            # '002032',
+            # '300039'
+            # '600612', '600104', '600754', '600886', '601588',
+            # '600809', '600028', '601398', '601088', '000650'
+            # '603260', '600600', '300296', '002563', '000848', '002242'
+            # '601828', '600398', '002233', '002327', '600703',
+            # '002422', '600597', '000513'
+            # '600547', '600988', '002155', '002697', '002736',
+            # '000776',
+            # '601988', '600028', '600859', '601928', '603008',
+            # '002640', '002769', '603199'
+            '601688', '601186', '601669', '601800', '601618',
+            '601390', '600820', '600170'
+        )
+
+        # run_list = ('000001', '399001', '000300', '399006', '399005', '000905')
+        is_index = False
 
         # ready
-        # for t in run_list:
-        #     for ma in range(10, 90):
-        #         for p in range(15, 36):
-        #             yield SimpleBollAccount(pool, ma, p / 10.0,
-        #                                     base_line_horse=t, base_line_is_index=False,
-        #                                     target_horse=t, target_is_index=False,
-        #                                     # start_date='20100107'
-        #                                     )
+        for t in run_list:
+            for ma in range(10, 90):
+                for p in range(15, 36):
+                    ac = SimpleBollAccount(pool, ma, p / 10.0,
+                                           base_line_horse=t, base_line_is_index=is_index,
+                                           target_horse=t, target_is_index=is_index, )
+
+                    fi = BackResult.objects.filter(param_string=ac.param_string(),
+                                                   use_code=ac.code_to_string(ac.target_horse, ac.target_is_index),
+                                                   base_line_code=ac.code_to_string(ac.base_line_horse, ac.base_line_is_index))
+
+                    if len(fi) > 0:
+                        print 'existed'
+                        continue
+                    else:
+                        yield ac
 
         # yield SimpleBollAccount(pool, 20, 2.5, base_line_horse='600519', base_line_is_index=False,
         #                         target_horse='600519', target_is_index=False)
 
-        yield SimpleBollAccount(pool, 20, 2.5,
-                                base_line_horse='000333', base_line_is_index=False,
-                                target_horse='000333', target_is_index=False,
-                                # start_date='20100107'
-                                )
+                        # yield SimpleBollAccount(pool, 20, 2.5,
+                        #                         base_line_horse='000333', base_line_is_index=False,
+                        #                         target_horse='000333', target_is_index=False,
+                        #                         # start_date='20100107'
+                        #                         )
